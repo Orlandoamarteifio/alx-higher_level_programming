@@ -1,27 +1,37 @@
 #!/usr/bin/python3
 """
-This script changes the name of a State object
-from the database `hbtn_0e_6_usa`.
+This script lists all cities from
+the database `hbtn_0e_4_usa`.
 """
 
+import MySQLdb
 from sys import argv
-from model_state import Base, State
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     """
-    Updates a State object on the database.
+    Access to the database and get the cities
+    from the database.
     """
 
-    db_uri = 'mysql+mysqldb://{}:{}@localhost:3306/{}'.format(
-        argv[1], argv[2], argv[3])
-    engine = create_engine(db_uri)
-    Session = sessionmaker(bind=engine)
+    db = MySQLdb.connect(host="localhost", user=argv[1], port=3306,
+                         passwd=argv[2], db=argv[3])
 
-    session = Session()
+    with db.cursor() as cur:
+        cur.execute("""
+            SELECT
+                cities.id, cities.name, states.name
+            FROM
+                cities
+            JOIN
+                states
+            ON
+                cities.state_id = states.id
+            ORDER BY
+                cities.id ASC
+        """)
 
-    ari_state = session.query(State).filter(State.id == '2').first()
-    ari_state.name = 'New Mexico'
-    session.commit()
-    session.close()
+        rows = cur.fetchall()
+
+    if rows is not None:
+        for row in rows:
+            print(row)
